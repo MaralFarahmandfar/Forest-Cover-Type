@@ -12,18 +12,23 @@ RESULTS_DIR = PROJECT_ROOT / "results"
 
 
 def run_experiment(name, hidden_units, data, results, seed=42,
-                   learning_rate=1e-3, batch_size=512, epochs=20, **build_kwargs):
+                   learning_rate=1e-3, batch_size=512, epochs=20,
+                   optimizer="adam", histories=None, **build_kwargs):
     """Run one full experiment: build, train, plot, evaluate on dev, log.
 
     Args:
-        name: experiment name, used in titles and file names.
+        name: experiment name, used in titles, file names and as the key
+            in `histories` (use a unique name for every experiment).
         hidden_units: list with the neurons of each hidden layer.
         data: dict from load_processed() with the six arrays.
         results: list where the metrics dict of this experiment is appended.
         seed: random seed, set at the start so every run is comparable.
         learning_rate, batch_size, epochs: training settings.
+        optimizer: "sgd", "momentum", "rmsprop" or "adam".
+        histories: optional dict; if given, the training curves
+            (history.history) are stored in it under `name`.
         **build_kwargs: extra arguments passed to build_model
-            (for example l2 or dropout, once they are implemented).
+            (for example l2 or dropout).
 
     Returns:
         The trained model.
@@ -41,7 +46,11 @@ def run_experiment(name, hidden_units, data, results, seed=42,
         learning_rate=learning_rate,
         batch_size=batch_size,
         epochs=epochs,
+        optimizer=optimizer,
     )
+
+    if histories is not None:
+        histories[name] = history.history
 
     plot_history(history, title=name, save_path=RESULTS_DIR / f"curves_{slug}.png")
 
