@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 
-def build_model(hidden_units, initializer="he_normal", n_features=54, n_classes=7):
+def build_model(hidden_units, initializer="he_normal", n_features=54, n_classes=7, l2=0.0, dropout=0.0):
     """Build a fully connected network for Covertype (not compiled).
 
     Args:
@@ -11,6 +11,9 @@ def build_model(hidden_units, initializer="he_normal", n_features=54, n_classes=
             ("he_normal" is the He initialization, suited for ReLU).
         n_features: number of input features.
         n_classes: number of output classes (softmax).
+        l2: L2 regularization strength for the hidden layers (0 = off).
+        dropout: fraction of neurons dropped after each hidden layer
+            (0 = off). Note: this is the drop rate, not keep_prob.
 
     Returns:
         A tf.keras.Sequential model.
@@ -18,8 +21,14 @@ def build_model(hidden_units, initializer="he_normal", n_features=54, n_classes=
     model = tf.keras.Sequential()
     model.add(tf.keras.Input(shape=(n_features,)))
 
+    regularizer = tf.keras.regularizers.l2(l2) if l2 > 0 else None
+
     for units in hidden_units:
-        model.add(tf.keras.layers.Dense(units, activation="relu", kernel_initializer=initializer))
+        model.add(tf.keras.layers.Dense(units, activation="relu",
+                                        kernel_initializer=initializer,
+                                        kernel_regularizer=regularizer))
+        if dropout > 0:
+            model.add(tf.keras.layers.Dropout(dropout))
 
     model.add(tf.keras.layers.Dense(n_classes, activation="softmax"))
 
